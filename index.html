@@ -6,7 +6,7 @@
     <title>纽约心声中文合唱团</title>
     <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
     <script src="https://unpkg.com/vue-router@4.2.4/dist/vue-router.global.js"></script>
-    <script src="https://unpkg.com/pinia@2.1.6"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pinia/2.1.6/pinia.iife.min.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
@@ -38,7 +38,7 @@
 
         const { createApp, ref, computed, onMounted, onUnmounted } = Vue
         const { createRouter, createWebHistory } = VueRouter
-        const { createPinia, defineStore } = Pinia
+        const { createPinia, defineStore } = window.Pinia
 
         // 检查依赖是否正确加载
         console.log('Vue loaded:', !!Vue)
@@ -533,7 +533,7 @@
 
         // 创建并挂载应用
         const app = createApp({})
-        const pinia = createPinia()
+        const pinia = window.Pinia.createPinia()
 
         app.use(pinia)
         app.use(router)
