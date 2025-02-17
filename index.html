@@ -6,6 +6,7 @@
     <title>纽约心声乐谱库</title>
     <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         body { margin: 0; font-family: system-ui, sans-serif; }
         .container { max-width: 800px; margin: 0 auto; padding: 20px; }
@@ -93,13 +94,11 @@
                 <button class="btn" @click="closeViewer">关闭</button>
             </div>
             <div class="viewer-content">
-                <embed 
-                    v-if="pdfUrl" 
-                    :src="pdfUrl" 
-                    type="application/pdf" 
-                    width="100%" 
-                    height="100%"
-                >
+                <canvas 
+                    v-if="showViewer" 
+                    ref="pdfCanvas"
+                    style="width: 100%; height: 100%;"
+                ></canvas>
             </div>
         </div>
     </div>
@@ -175,9 +174,33 @@
                 const viewScore = async (score) => {
                     currentScore.value = score
                     const watermarkedPdf = await addWatermark(score.data)
-                    const blob = new Blob([watermarkedPdf], { type: 'application/pdf' })
-                    pdfUrl.value = URL.createObjectURL(blob) + '#toolbar=0'
                     showViewer.value = true
+                    
+                    // 等待 DOM 更新
+                    await Vue.nextTick()
+                    
+                    // 使用 PDF.js 渲染 PDF
+                    const canvas = document.querySelector('#pdfCanvas')
+                    const blob = new Blob([watermarkedPdf], { type: 'application/pdf' })
+                    const url = URL.createObjectURL(blob)
+                    
+                    // 加载并渲染 PDF
+                    const loadingTask = pdfjsLib.getDocument(url)
+                    const pdf = await loadingTask.promise
+                    const page = await pdf.getPage(1)
+                    
+                    // 设置缩放以适应容器
+                    const viewport = page.getViewport({ scale: 1.0 })
+                    const context = canvas.getContext('2d')
+                    canvas.height = viewport.height
+                    canvas.width = viewport.width
+                    
+                    await page.render({
+                        canvasContext: context,
+                        viewport: viewport
+                    }).promise
+                    
+                    URL.revokeObjectURL(url)
                 }
 
                 // 关闭查看器
