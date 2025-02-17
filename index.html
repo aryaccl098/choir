@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>纽约心声中文合唱团</title>
-    <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' https://carrd.co;">
-    <script src="https://unpkg.com/vue@3.3.0/dist/vue.global.prod.js"></script>
-    <script src="https://unpkg.com/vue-router@4.0.0/dist/vue-router.global.prod.js"></script>
-    <script src="https://unpkg.com/pinia@2.0.0/dist/pinia.iife.prod.js"></script>
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue-router@4.2.4/dist/vue-router.global.js"></script>
+    <script src="https://unpkg.com/pinia@2.1.6/dist/pinia.iife.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <script src="https://unpkg.com/@heroicons/vue@2.0.0/outline/index.min.js"></script>
+    <script src="https://unpkg.com/@heroicons/vue@2.0.18/24/outline/esm/index.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* 自定义样式 */
@@ -33,9 +32,20 @@
     </div>
 
     <script>
+        // 添加错误处理
+        window.onerror = function(msg, url, line, col, error) {
+            console.error('Error: ' + msg + '\nurl: ' + url + '\nline: ' + line);
+        };
+
         const { createApp, ref, computed, onMounted, onUnmounted } = Vue
         const { createRouter, createWebHistory } = VueRouter
         const { createPinia, defineStore } = Pinia
+
+        // 检查依赖是否正确加载
+        console.log('Vue loaded:', !!Vue)
+        console.log('VueRouter loaded:', !!VueRouter)
+        console.log('Pinia loaded:', !!Pinia)
+        console.log('PDFLib loaded:', !!PDFLib)
 
         // User Store
         const useUserStore = defineStore('user', {
@@ -497,7 +507,7 @@
 
         // 路由配置
         const router = createRouter({
-            history: createWebHistory(),
+            history: createWebHistory('/nycheart-scores/'),
             routes: [
                 {
                     path: '/',
