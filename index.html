@@ -58,6 +58,23 @@
             border: none;
             background: white;
         }
+        .preview-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: white;
+            text-align: center;
+        }
+        .preview-message h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .preview-message p {
+            font-size: 16px;
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
@@ -90,16 +107,18 @@
         <div v-if="showViewer" class="viewer">
             <div class="viewer-header">
                 <h2>{{ currentScore?.name }}</h2>
-                <button class="btn" @click="closeViewer">关闭</button>
+                <div>
+                    <button class="btn" style="margin-right: 10px;" @click="downloadPdf">
+                        下载PDF
+                    </button>
+                    <button class="btn" @click="closeViewer">关闭</button>
+                </div>
             </div>
             <div class="viewer-content">
-                <iframe
-                    v-if="pdfUrl"
-                    :src="'https://docs.google.com/viewer?embedded=true&url=' + encodeURIComponent(pdfUrl)"
-                    width="100%"
-                    height="100%"
-                    frameborder="0"
-                ></iframe>
+                <div class="preview-message">
+                    <h3>乐谱已添加水印</h3>
+                    <p>点击"下载PDF"查看完整乐谱</p>
+                </div>
             </div>
         </div>
     </div>
@@ -112,7 +131,7 @@
                 const scores = ref([])
                 const showViewer = ref(false)
                 const currentScore = ref(null)
-                const pdfUrl = ref(null)
+                const currentPdfData = ref(null)
 
                 // 加载保存的乐谱
                 const loadScores = () => {
@@ -175,18 +194,31 @@
                 const viewScore = async (score) => {
                     currentScore.value = score
                     const watermarkedPdf = await addWatermark(score.data)
-                    const blob = new Blob([watermarkedPdf], { type: 'application/pdf' })
-                    pdfUrl.value = URL.createObjectURL(blob)
+                    currentPdfData.value = watermarkedPdf
                     showViewer.value = true
+                }
+
+                // 下载PDF
+                const downloadPdf = () => {
+                    if (!currentPdfData.value) return
+                    
+                    const blob = new Blob([currentPdfData.value], { type: 'application/pdf' })
+                    const url = URL.createObjectURL(blob)
+                    
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = currentScore.value.name
+                    document.body.appendChild(a)
+                    a.click()
+                    document.body.removeChild(a)
+                    
+                    URL.revokeObjectURL(url)
                 }
 
                 // 关闭查看器
                 const closeViewer = () => {
                     showViewer.value = false
-                    if (pdfUrl.value) {
-                        URL.revokeObjectURL(pdfUrl.value)
-                        pdfUrl.value = null
-                    }
+                    currentPdfData.value = null
                 }
 
                 // 加载保存的乐谱
@@ -194,8 +226,8 @@
 
                 // 清理
                 onUnmounted(() => {
-                    if (pdfUrl.value) {
-                        URL.revokeObjectURL(pdfUrl.value)
+                    if (currentPdfData.value) {
+                        URL.revokeObjectURL(URL.createObjectURL(currentPdfData.value))
                     }
                 })
 
@@ -203,9 +235,10 @@
                     scores,
                     showViewer,
                     currentScore,
-                    pdfUrl,
+                    currentPdfData,
                     handleFileSelect,
                     viewScore,
+                    downloadPdf,
                     closeViewer
                 }
             }
